@@ -101,14 +101,14 @@ cmake-build-*/
 *.exe
 
 # Qt Creator files
-.build/
-debug/
-release/
+build-*/
 *.user
+*.pro.user
 *.qmake.stash
 *.qmake.cache
 *.txt
 *.exe
+
 
 
 # Chutzpah Test files
