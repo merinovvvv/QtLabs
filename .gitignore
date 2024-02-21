@@ -101,6 +101,9 @@ cmake-build-*/
 *.exe
 
 # Qt Creator files
+.build/
+debug/
+release/
 *.user
 *.qmake.stash
 *.qmake.cache
