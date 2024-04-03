@@ -1,11 +1,13 @@
-#include "widget.h"
+#include "patterns.h"
 
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    Widget w;
+    Patterns w;
+    w.resize(960, 540);
+    w.setWindowTitle("Array's histograms using Patterns");
     w.show();
     return a.exec();
 }

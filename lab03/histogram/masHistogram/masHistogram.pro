@@ -10,13 +10,13 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    widget.cpp
+    patterns.cpp
 
 HEADERS += \
-    widget.h
+    patterns.h
 
 FORMS += \
-    widget.ui
+    patterns.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

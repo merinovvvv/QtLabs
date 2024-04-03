@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     //w.setStyleSheet("background-image: url(:/images/img/paper.jpeg); background-repeat: no-repeat; background-position: center; background-size: cover;");
 
-    w.setStyleSheet("background-color: lightblue;");
+    //w.setStyleSheet("background-color: lightblue;");
 
     //w.showFullScreen();
     w.show();

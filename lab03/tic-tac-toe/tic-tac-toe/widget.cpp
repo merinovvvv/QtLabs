@@ -15,6 +15,13 @@ Widget::Widget(QWidget *parent)
     ui->setupUi(this);
     setFixedSize(1000, 600);
 
+    //I FINALLY DID IT (I MEAN I HAVE SET A PICTURE AS A BACKGROUND):
+
+    QPixmap background(":/images/img/paper.jpeg");
+    QPalette palette;
+    palette.setBrush(QPalette::Background, background);
+    this->setPalette(palette);
+
     // QMessageBox msgBox;
 
     // QPushButton *xButton = msgBox.addButton(tr("X"), QMessageBox::ActionRole);
