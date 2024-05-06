@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/resource">
+        <file>img/list.png</file>
+        <file>img/money.png</file>
+        <file>img/tasksWall.png</file>
+        <file>img/wall.jpg</file>
+    </qresource>
+</RCC>
