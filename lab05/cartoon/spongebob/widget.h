@@ -11,10 +11,10 @@ enum class HorizontalDirectionTypes {
     kRight,
 };
 
-enum class VerticalDirectionTypes {
-    kTop,
-    kBottom,
-};
+// enum class VerticalDirectionTypes {
+//     kTop,
+//     kBottom,
+// };
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -52,7 +52,7 @@ private:
 
     double x_{0}, y_{0};
     HorizontalDirectionTypes directionH_{HorizontalDirectionTypes::kRight};
-    VerticalDirectionTypes directionV_{VerticalDirectionTypes::kTop};
+    //VerticalDirectionTypes directionV_{VerticalDirectionTypes::kTop};
     double jump_length_{60};
     double jump_height_{100};
 

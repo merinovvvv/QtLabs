@@ -60,8 +60,7 @@ void Widget::setScene() {
 
 void Widget::setHero() {
     spongebob_item_ = scene_ -> addPixmap(spongebob_);
-    spongebob_item_->setPos(10, 210);
-    spongebob_item_->setScale(0.1);
+    spongebob_item_->setPos(0, 100);
     spongebob_width_ = static_cast<int>(spongebob_item_->boundingRect().width());
 
 }
@@ -70,7 +69,7 @@ void Widget::timerEvent(QTimerEvent* event) {
     if (event->timerId() == animation_timer_.timerId()) {
         y_ = -abs(jump_height_ * qSin(x_ / jump_length_));
 
-        spongebob_item_->setPos(x_ + 100, 210 + y_);
+        spongebob_item_->setPos(x_ , y_ + 100);
         if (directionH_ == HorizontalDirectionTypes::kRight && x_ + spongebob_width_ >= widthWidget_) {
             directionH_ = HorizontalDirectionTypes::kLeft;
             spongebob_item_->setPixmap(spongebob_.transformed(QTransform().scale(-1, 1)));
