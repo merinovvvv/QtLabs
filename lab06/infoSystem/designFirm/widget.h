@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QPlainTextEdit>
 
 #include "company.h"
 
@@ -21,24 +22,41 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
 
+
 private:
     Ui::Widget *ui;
     QLineEdit* fio;
     QLineEdit* projectName;
-    QLineEdit* taskInProject;
-    //QLineEdit* completionDate;
-    QLineEdit* dateOfBegin;
-    QLineEdit* dateOfFinish;
-    QPushButton* saveButton;
-    QWidget *tasksWindow;
-    QMap <QString, QString> employeeAndDate;
+    QLineEdit* projectStartDate;
+    QLineEdit* projectEndDate;
+    QLineEdit* taskName;
+    QLineEdit* completionDate;
+    QPlainTextEdit* textField;
     QLineEdit* day;
     QLineEdit* employee;
-    void writeToJsonFile(const QString& fileName, const QList<QString>& companyInfo);
+
+    QPushButton* saveButton;
+
+    QWidget *tasksWindow;
+    QDate secondWindowDate;
+    QString secondWindowEmployee;
+
+    QWidget *employeesWindow;
+    QLineEdit* month;
+    QLineEdit* year;
+
+    Company myCompany;
+    void writeToJsonFile(const QString& fileName, const Company& company);
+    QJsonObject companyToJson(const Company& company);
+    QJsonObject projectToJson(const Project& project);
 
 private slots:
     void saveCompanyInfo();
     void showTasksWindow();
     void backToMain();
+    void showSortedProjects();
+    void showEmployees();
+    void calculateAndDisplayEmployeeWork();
+    void clearTextField();
 };
 #endif // WIDGET_H

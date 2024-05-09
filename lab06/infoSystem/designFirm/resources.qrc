@@ -4,5 +4,6 @@
         <file>img/wall.jpg</file>
         <file>img/list.png</file>
         <file>img/tasksWall.png</file>
+        <file>img/employeeIcon.png</file>
     </qresource>
 </RCC>

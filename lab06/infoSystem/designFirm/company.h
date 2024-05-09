@@ -4,20 +4,41 @@
 #include <QString>
 #include <QList>
 
+#include <QDate>
+#include <QMap>
+
+struct Task {
+    QString taskName;
+    QDate completionDate;
+};
+
+struct Employee {
+    QString fullName;
+    QList<Task> tasks;
+};
+
+struct Project {
+    QString projectName;
+    QDate startDate;
+    QDate endDate;
+    QMap<QString, QList<Employee>> employees; // Сотрудники для каждого проекта
+};
+
 class Company
 {
 public:
     Company();
     ~Company();
 
-public:
-    QList <QString> getCompanyInfo();
-    void setCompanyInfo(QList <QString>&);
+    void addProject(const Project& project);
+    QList <Project> getProjects() const;
 
-protected:
-    QList <QString> companyInfo;
-    //QVector <QString> companyProjects;
-    //QVector <QString> employees;
+    bool hasProject(const QString& projectName) const;
+
+    void addEmployeeToProject(const QString& projectName, const QString& employeeName, const Task& task);
+
+private:
+    QList <Project> projects;
 };
 
 #endif // COMPANY_H

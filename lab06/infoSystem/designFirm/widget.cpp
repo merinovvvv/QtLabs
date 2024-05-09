@@ -26,10 +26,10 @@ Widget::Widget(QWidget *parent)
 
     fio = new QLineEdit();
     projectName = new QLineEdit();
-    taskInProject = new QLineEdit();
-    //completionDate = new QLineEdit();
-    dateOfBegin = new QLineEdit();
-    dateOfFinish = new QLineEdit();
+    projectStartDate = new QLineEdit();
+    projectEndDate = new QLineEdit();
+    taskName = new QLineEdit();
+    completionDate = new QLineEdit();
     saveButton = new QPushButton();
 
     QLabel* fioLabel = new QLabel();
@@ -40,29 +40,30 @@ Widget::Widget(QWidget *parent)
     projectNameLabel->setStyleSheet("color: white");
     projectNameLabel->setText("Project name:");
 
-    QLabel* taskInProjectLabel = new QLabel();
-    taskInProjectLabel->setStyleSheet("color: white");
-    taskInProjectLabel->setText("Task in the project:");
+    QLabel* projectStartDateLabel = new QLabel();
+    projectStartDateLabel->setStyleSheet("color: white");
+    projectStartDateLabel->setText("Project start date:");
 
-    //QLabel* completionDateLabel  = new QLabel();
-    //completionDateLabel->setText("Completion date:");
+    QLabel* projectEndDateLabel = new QLabel();
+    projectEndDateLabel->setStyleSheet("color: white");
+    projectEndDateLabel->setText("Project end date:");
 
-    QLabel* dateOfBeginLabel = new QLabel();
-    dateOfBeginLabel->setStyleSheet("color: white");
-    dateOfBeginLabel->setText("Start date:");
+    QLabel* taskNameLabel = new QLabel();
+    taskNameLabel->setStyleSheet("color: white");
+    taskNameLabel->setText("Task name:");
 
-    QLabel* dateOfFinishLabel = new QLabel();
-    dateOfFinishLabel->setStyleSheet("color: white");
-    dateOfFinishLabel->setText("Finish date:");
+    QLabel* completionDateLabel  = new QLabel();
+    completionDateLabel->setStyleSheet("color: white");
+    completionDateLabel->setText("Completion date:");
 
     saveButton->setText("Save");
 
     QHBoxLayout* fioLayout = new QHBoxLayout();
     QHBoxLayout* projectNameLayout = new QHBoxLayout();
-    QHBoxLayout* taskInProjectLayout = new QHBoxLayout();
-    //QHBoxLayout* completionDateLayout = new QHBoxLayout();
-    QHBoxLayout* dateOfBeginLayout = new QHBoxLayout();
-    QHBoxLayout* dateOfFinishLayout = new QHBoxLayout();
+    QHBoxLayout* projectStartDateLayout = new QHBoxLayout();
+    QHBoxLayout* projectEndDateLayout = new QHBoxLayout();
+    QHBoxLayout* taskNameLayout = new QHBoxLayout();
+    QHBoxLayout* completionDateLayout = new QHBoxLayout();
 
     fioLayout->addWidget(fioLabel);
     fioLayout->addWidget(fio);
@@ -70,17 +71,17 @@ Widget::Widget(QWidget *parent)
     projectNameLayout->addWidget(projectNameLabel);
     projectNameLayout->addWidget(projectName);
 
-    taskInProjectLayout->addWidget(taskInProjectLabel);
-    taskInProjectLayout->addWidget(taskInProject);
+    projectStartDateLayout->addWidget(projectStartDateLabel);
+    projectStartDateLayout->addWidget(projectStartDate);
 
-    //completionDateLayout->addWidget(completionDateLabel);
-    //completionDateLayout->addWidget(completionDate);
+    projectEndDateLayout->addWidget(projectEndDateLabel);
+    projectEndDateLayout->addWidget(projectEndDate);
 
-    dateOfBeginLayout->addWidget(dateOfBeginLabel);
-    dateOfBeginLayout->addWidget(dateOfBegin);
+    taskNameLayout->addWidget(taskNameLabel);
+    taskNameLayout->addWidget(taskName);
 
-    dateOfFinishLayout->addWidget(dateOfFinishLabel);
-    dateOfFinishLayout->addWidget(dateOfFinish);
+    completionDateLayout->addWidget(completionDateLabel);
+    completionDateLayout->addWidget(completionDate);
 
     // setLayout(fioLayout);
     // setLayout(projectNameLayout);
@@ -93,20 +94,19 @@ Widget::Widget(QWidget *parent)
     QVBoxLayout* vertLayout = new QVBoxLayout();
     vertLayout->addLayout(fioLayout);
     vertLayout->addLayout(projectNameLayout);
-    vertLayout->addLayout(taskInProjectLayout);
-    //vertLayout->addLayout(completionDateLayout);
-    vertLayout->addLayout(dateOfBeginLayout);
-    vertLayout->addLayout(dateOfFinishLayout);
+    vertLayout->addLayout(projectStartDateLayout);
+    vertLayout->addLayout(projectEndDateLayout);
+    vertLayout->addLayout(taskNameLayout);
+    vertLayout->addLayout(completionDateLayout);
     vertLayout->addWidget(saveButton);
 
-    QLineEdit* textField = new QLineEdit();
+    textField = new QPlainTextEdit();
     //genLayout->addWidget(textField);
     textField->setFixedHeight(200);
 
 
     QVBoxLayout* textAndButtons = new QVBoxLayout();
     textAndButtons->addWidget(textField);
-
 
 
     QPushButton* showProjects = new QPushButton();
@@ -120,6 +120,10 @@ Widget::Widget(QWidget *parent)
     QPushButton* showEmployees = new QPushButton();
     showEmployees->setText("Show a list of employees");
     textAndButtons->addWidget(showEmployees);
+
+    QPushButton* clearButton = new QPushButton();
+    clearButton->setText("Clear");
+    textAndButtons->addWidget(clearButton);
 
 
     QHBoxLayout* genLayout = new QHBoxLayout();
@@ -136,32 +140,152 @@ Widget::Widget(QWidget *parent)
 
     connect(saveButton, SIGNAL(clicked()), this, SLOT(saveCompanyInfo()));
     connect(showTasks, SIGNAL(clicked()), this, SLOT(showTasksWindow()));
+    connect (showProjects, SIGNAL(clicked()), this, SLOT(showSortedProjects()));
+    connect (showEmployees, SIGNAL(clicked()), this, SLOT(showEmployees()));
+    connect (clearButton, SIGNAL(clicked()), this, SLOT(clearTextField()));
 
-}
-
-Widget::~Widget()
-{
-    delete ui;
 }
 
 void Widget::saveCompanyInfo() {
-    QList <QString> tmp = Company::getCompanyInfo();
-    tmp.append(fio->text());
-    tmp.append(projectName->text());
-    tmp.append(taskInProject->text());
-    tmp.append(dateOfBegin->text());
-    tmp.append(dateOfFinish->text());
-    //tmp.append(" ");
-    Company::setCompanyInfo(tmp);
 
+    Task task;
+    task.taskName = taskName->text();
+    QDate tCompletionDate = QDate::fromString(completionDate->text(), "yyyy-MM-dd");
+    task.completionDate = tCompletionDate;
+
+    bool projectExists = myCompany.hasProject(projectName->text());
+
+    if (projectExists) {
+        // If the project exists
+        myCompany.addEmployeeToProject(projectName->text(), fio->text(), task);
+    } else {
+
+        Project project;
+        project.projectName = projectName->text();
+        QDate pStartDate = QDate::fromString(projectStartDate->text(), "yyyy-MM-dd");
+        project.startDate = pStartDate;
+        QDate pEndDate = QDate::fromString(projectEndDate->text(), "yyyy-MM-dd");
+        project.endDate = pEndDate;
+
+        Employee employee;
+        employee.fullName = fio->text();
+
+
+        employee.tasks.append(task);
+        project.employees[project.projectName].append(employee);
+
+        myCompany.addProject(project);
+
+    }
 
     QString fileName = "companyInfo.json";
-    writeToJsonFile(fileName, companyInfo);
+
+    writeToJsonFile(fileName, myCompany);
     fio->clear();
     projectName->clear();
-    taskInProject->clear();
-    dateOfBegin->clear();
-    dateOfFinish->clear();
+    projectStartDate->clear();
+    projectEndDate->clear();
+    taskName->clear();
+    completionDate->clear();
+}
+
+// Converts the data structure to JSON
+QJsonObject Widget::projectToJson(const Project& project) {
+    QJsonObject projectObject;
+    projectObject["projectName"] = project.projectName;
+
+    QString startDateString = project.startDate.toString("yyyy-MM-dd");
+    projectObject["startDate"] = startDateString;
+
+    QString endDateString = project.endDate.toString("yyyy-MM-dd");
+    projectObject["endDate"] = endDateString;
+
+    QJsonObject employeesObject;
+
+
+
+    for (const QString& projectName : project.employees.keys()) {
+        QJsonArray employeeArray;
+        for (const Employee& employee : project.employees.value(projectName)) {
+            QJsonObject employeeObject;
+            employeeObject["fullName"] = employee.fullName;
+
+            QJsonArray tasksArray;
+            for (const Task& task : employee.tasks) {
+                QJsonObject taskObject;
+                taskObject["taskName"] = task.taskName;
+
+                QString completionDateString = task.completionDate.toString("yyyy-MM-dd");
+                taskObject["completionDate"] = completionDateString;
+                tasksArray.append(taskObject);
+            }
+            employeeObject["tasks"] = tasksArray;
+
+            employeeArray.append(employeeObject);
+        }
+        employeesObject[projectName] = employeeArray;
+    }
+    projectObject["employees"] = employeesObject;
+
+    return projectObject;
+}
+
+//Converts the company to JSON
+QJsonObject Widget::companyToJson(const Company& company) {
+    QJsonObject companyObject;
+
+    QJsonArray projectsArray;
+    for (const Project& project : company.getProjects()) {
+        QJsonObject projectObject;
+        projectObject["projectName"] = project.projectName;
+        projectObject["startDate"] = project.startDate.toString("yyyy-MM-dd");
+        projectObject["endDate"] = project.endDate.toString("yyyy-MM-dd");
+
+        QJsonArray employeesArray;
+
+        //qDebug() << "Number of projects in project.employees:" << project.employees.size();
+
+        for (const auto& employeeList : project.employees) {
+            for (const Employee& employee : employeeList) {
+                QJsonObject employeeObject;
+                employeeObject["fullName"] = employee.fullName;
+
+                QJsonArray tasksArray;
+                for (const Task& task : employee.tasks) {
+                    QJsonObject taskObject;
+                    taskObject["taskName"] = task.taskName;
+                    taskObject["completionDate"] = task.completionDate.toString("yyyy-MM-dd");
+                    tasksArray.append(taskObject);
+                }
+                employeeObject["tasks"] = tasksArray;
+
+                employeesArray.append(employeeObject);
+            }
+        }
+
+        projectObject["employees"] = employeesArray;
+        projectsArray.append(projectObject);
+    }
+
+    companyObject["company"] = projectsArray;
+
+    return companyObject;
+}
+
+
+// Writes JSON to a file
+void Widget::writeToJsonFile(const QString& fileName, const Company& company) {
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "Couldn't open file for writing:" << fileName;
+        return;
+    }
+
+    QTextStream out(&file);
+    QJsonDocument jsonDoc(companyToJson(company));
+    out << jsonDoc.toJson(QJsonDocument::Indented);
+
+    file.close();
 }
 
 void Widget::showTasksWindow() {
@@ -206,45 +330,156 @@ void Widget::showTasksWindow() {
 }
 
 void Widget::backToMain() {
-    employeeAndDate.insert(day->text(), employee->text());
-    tasksWindow->deleteLater();
-}
 
-QJsonArray convertToJsonObject(const QList<QString> &companyInfo) {
-    QJsonArray jsonArray;
-    int numFields = 5; // Ожидаемое количество полей в каждой строке
-    for (int i = 0; i < companyInfo.size(); i += numFields) {
-        if (i + numFields <= companyInfo.size()) { // Проверка, достаточно ли элементов для создания объекта
-            QJsonObject obj;
-            obj["employee"] = companyInfo[i];
-            obj["project"] = companyInfo[i + 1];
-            obj["task"] = companyInfo[i + 2];
-            obj["start date"] = companyInfo[i + 3];
-            obj["end date"] = companyInfo[i + 4];
-            jsonArray.append(obj);
-        } else {
-            qWarning() << "Insufficient data to create object at index:" << i;
+    QDate secondWindowDate_ = QDate::fromString(day->text(), "yyyy-MM-dd");
+
+    secondWindowDate = secondWindowDate_;
+
+    secondWindowEmployee = employee->text();
+
+    //qDebug() << secondWindowEmployee << secondWindowDate;
+
+    tasksWindow->deleteLater();
+
+    QList<Project> projects = myCompany.getProjects();
+
+    qDebug() << "secondWindowEmployee:" << secondWindowEmployee;
+
+
+    QStringList employeeTasksForToday;
+
+
+    for (const Project &project : projects) {
+        for (auto it = project.employees.begin(); it != project.employees.end(); ++it) {
+            for (const Employee &employee : it.value()) {
+                if (employee.fullName == secondWindowEmployee) {
+                    for (const Task &task : employee.tasks) {
+                        if (task.completionDate == secondWindowDate && employee.fullName == secondWindowEmployee) {
+                            employeeTasksForToday.append(task.taskName);
+                        }
+                    }
+                }
+            }
         }
     }
-    return jsonArray;
+
+
+
+    //qDebug() << "Size of employeeTasksForToday: " << employeeTasksForToday.size();
+
+    QString secondWindowDateString = secondWindowDate.toString("yyyy-MM-dd");
+
+    QString resultText = QString("Tasks for employee %1 for %2:\n").arg(secondWindowEmployee).arg(secondWindowDateString);
+    for (const QString &task : employeeTasksForToday) {
+        resultText += QString("- %1\n").arg(task);
+    }
+
+    textField->setPlainText(resultText);
 }
 
+void Widget::showSortedProjects() {
+    QList <Project> projects = myCompany.getProjects();
 
+    std::sort(projects.begin(), projects.end(), [](const Project &a, const Project &b) {
+        return a.endDate < b.endDate;
+    });
 
-void Widget::writeToJsonFile(const QString& fileName, const QList<QString>& companyInfo) {
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qWarning() << "Couldn't open file for writing:" << fileName;
-        return;
+    QString allProjectsText;
+
+    for (const Project &project : projects) {
+        QString text = QString("Project name: %1\n").arg(project.projectName);
+
+        allProjectsText += text;
+    }
+    textField->setPlainText(allProjectsText);
+}
+
+void Widget::showEmployees() {
+    employeesWindow = new QWidget();
+    employeesWindow->setWindowTitle("Month work");
+    employeesWindow->resize(500, 500);
+    employeesWindow->setWindowIcon(QIcon(":/resource/img/employeeIcon.png"));
+    employeesWindow->show();
+
+    QPixmap employeesWindowBackground(":/resource/img/tasksWall.png");
+    QPalette employeesWindowPalette;
+    employeesWindowPalette.setBrush(QPalette::Window, employeesWindowBackground);
+    employeesWindow->setPalette(employeesWindowPalette);
+
+    QHBoxLayout* employeeWindowHLayout = new QHBoxLayout();
+    QLabel* inputMonth = new QLabel();
+    inputMonth->setStyleSheet("color: white");
+    inputMonth->setText("Input the month number:");
+    month = new QLineEdit();
+    employeeWindowHLayout->addWidget(inputMonth);
+    employeeWindowHLayout->addWidget(month);
+
+    QHBoxLayout* employeeWindowHLayout2 = new QHBoxLayout();
+    QLabel* inputYear = new QLabel();
+    inputYear->setStyleSheet("color: white");
+    inputYear->setText("Input the year:");
+    year = new QLineEdit();
+    employeeWindowHLayout2->addWidget(inputYear);
+    employeeWindowHLayout2->addWidget(year);
+
+    QPushButton* employeesWindowConfirmButton = new QPushButton();
+    employeesWindowConfirmButton->setText("Confirm");
+
+    QVBoxLayout* employeeWindowVLayout = new QVBoxLayout();
+    employeeWindowVLayout->addLayout(employeeWindowHLayout);
+    employeeWindowVLayout->addLayout(employeeWindowHLayout2);
+    employeeWindowVLayout->addWidget(employeesWindowConfirmButton);
+
+    employeesWindow->setLayout(employeeWindowVLayout);
+
+    connect(employeesWindowConfirmButton, SIGNAL(clicked()), this, SLOT(calculateAndDisplayEmployeeWork()));
+}
+
+void Widget::calculateAndDisplayEmployeeWork() {
+    employeesWindow->deleteLater();
+
+    int targetMonth = month->text().toInt();
+    int targetYear = year->text().toInt();
+
+    QMap<QString, int> employeeWork;
+
+    int daysDifference;
+
+    for (const Project &project : myCompany.getProjects()) {
+        for (const auto &employeeList : project.employees) {
+            for (const Employee &employee : employeeList) {
+                for (const Task &task : employee.tasks) {
+                    if (task.completionDate.month() == targetMonth && task.completionDate.year() == targetYear) {
+                        if (project.startDate.month() == targetMonth) {
+                            daysDifference = std::abs(task.completionDate.daysTo(project.startDate));
+                        }
+                        else if (project.startDate.month() < targetMonth) {
+                            QDate startOfMonth(targetYear, targetMonth, 1);
+                            daysDifference = std::abs(task.completionDate.daysTo(startOfMonth)) + 1;
+                        }
+                        // else {
+                        //     daysDifference = 0;
+                        // }
+                        employeeWork[employee.fullName] += daysDifference;
+                    }
+                }
+            }
+        }
     }
 
-    QTextStream out(&file);
-    QJsonArray jsonArray = convertToJsonObject(companyInfo);
-    for (const QJsonValue &value : jsonArray) {
-        QVariantMap map = value.toObject().toVariantMap();
-        QJsonObject obj = QJsonObject::fromVariantMap(map);
-        out << QJsonDocument(obj).toJson(QJsonDocument::Indented) << endl;
+    QString resultText = "Employees and their total work days for month № " + QString::number(targetMonth) + ":\n";
+    for (const QString &employeeName : employeeWork.keys()) {
+        resultText += QString("%1: %2 days\n").arg(employeeName).arg(employeeWork.value(employeeName));
     }
 
-    file.close();
+    textField->setPlainText(resultText);
+}
+
+void Widget::clearTextField() {
+    textField->clear();
+}
+
+Widget::~Widget()
+{
+    delete ui;
 }
