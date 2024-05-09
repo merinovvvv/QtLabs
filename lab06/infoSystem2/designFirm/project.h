@@ -11,9 +11,10 @@ class Project
 {
 public:
     Project(QString projectName = "", QDate startDate_ = QDate(2005, 10, 28), QDate endDate = QDate(2005, 10, 28), QList<Task> tasks = {}, QList<Employee*> employees = {});
+    ~Project();
 
     void setProjectName(const QString&);
-     QString getProjectName();
+    QString getProjectName();
 
 
     void setStartDate(const QDate&);

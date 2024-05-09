@@ -5,6 +5,11 @@
 #include "widget.h"
 #include "ui_widget.h"
 
+
+#include "employee.h"
+#include "project.h"
+#include "task.h"
+
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
@@ -145,10 +150,8 @@ Widget::Widget(QWidget *parent)
 
     setLayout(genLayout);
 
-    // connect(saveButton, SIGNAL(clicked()), this, SLOT(saveProject()));
-    // connect(saveButton, SIGNAL(clicked()), this, SLOT(saveTask()));
-    // connect(saveButton, SIGNAL(clicked()), this, SLOT(saveEmployee()));
-    // connect(showTasks, SIGNAL(clicked()), this, SLOT(showTasksWindow()));
+    connect(saveButton, SIGNAL(clicked()), this, SLOT(saveInfo()));
+    connect(showTasks, SIGNAL(clicked()), this, SLOT(showTasksWindow()));
 }
 
 void Widget::showTasksWindow() {
@@ -189,7 +192,55 @@ void Widget::showTasksWindow() {
 
     tasksWindow->setLayout(taskWindowVLayout);
 
-    //connect (taskWindowConfirmButton, SIGNAL(clicked()), this, SLOT(backToMain()));
+    connect (taskWindowConfirmButton, SIGNAL(clicked()), this, SLOT(backToMain()));
+}
+
+
+void Widget::backToMain() {
+    employeeAndDate.insert(day->text(), employee->text());
+    tasksWindow->deleteLater();
+}
+
+void Widget::saveInfo() {
+    Employee *employee = new Employee();
+    employee->setFullName(fio->text());
+
+    Project *project = new Project();
+    project->setProjectName(projectName->text());
+    QDate startDateP = QDate::fromString(projectStart->text(), "yyyy.MM.dd");
+    project->setStartDate(startDateP);
+    QDate endDateP = QDate::fromString(projectEnd->text(), "yyyy.MM.dd");
+    project->setStartDate(endDateP);
+
+    Task *task = new Task();
+    task->setTaskName(taskInProject->text());
+    QDate startDateT = QDate::fromString(taskStart->text(), "yyyy.MM.dd");
+    task->setStart(startDateT);
+    QDate endDateT = QDate::fromString(taskEnd->text(), "yyyy.MM.dd");
+    task->setStart(endDateT);
+
+    employee->setProject(project);
+    employee->setTask(task);
+
+    project->addEmployee(employee);
+    project->addTask(*task);
+
+    task->setEmployee(employee);
+
+    myCompany.addEmployee(*employee);
+    myCompany.addProject(*project);
+
+    // project = nullptr;
+    // task = nullptr;
+    // employee = nullptr;
+
+    fio->clear();
+    projectName->clear();
+    projectStart->clear();
+    projectEnd->clear();
+    taskInProject->clear();
+    taskStart->clear();
+    taskEnd->clear();
 }
 
 
@@ -197,3 +248,5 @@ Widget::~Widget()
 {
     delete ui;
 }
+
+

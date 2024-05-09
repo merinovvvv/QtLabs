@@ -11,10 +11,13 @@ class Task
 {
 public:
     Task(QString taskName = "", QDate startDate = QDate(2005, 10, 28), QDate endDate = QDate(2005, 10, 28), Employee* employee = {});
+    ~Task();
+
     void setTaskName(const QString&);
     void setStart(const QDate&);
     void setEnd(const QDate&);
     void setEmployee(Employee* employee);
+
     QString getTaskName();
     QDate getStartDate();
     QDate getEndDate();

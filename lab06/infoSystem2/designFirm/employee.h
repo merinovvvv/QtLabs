@@ -11,6 +11,7 @@ class Employee
 {
 public:
     Employee(QString fullName = "", Project* project = nullptr, QList <Task*> tasks = {}, int totalWorkTime = 0);
+    ~Employee();
     void setFullName(const QString& );
     QString getFullName();
 

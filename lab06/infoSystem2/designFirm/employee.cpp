@@ -8,6 +8,15 @@ Employee::Employee(QString fullName, Project* project, QList <Task*> tasks, int 
     id++;
 }
 
+Employee::~Employee() {
+    for (Task* task : tasks_) {
+        delete task;
+    }
+    tasks_.clear();
+
+    delete project_;
+}
+
 void Employee::setProject(Project* project) {
     project_ = project;
 }
@@ -44,5 +53,7 @@ int Employee::getId() {
 
 
 void Employee::calcTotalWorkTime() {
-
+    for (size_t i = 0; i < tasks_.size(); ++i) {
+        totalWorkTime_ += tasks_[i]->getEndDate().daysTo(tasks_[i]->getStartDate());
+    }
 }

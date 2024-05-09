@@ -10,12 +10,13 @@ Project::Project(QString projectName, QDate startDate, QDate endDate, QList<Task
     id++;
 }
 
-// Project::~Project() {
-//     for (Employee* emp : employees_) {
-//         delete emp;
-//     }
-//     employees_.clear();
-// }
+
+Project::~Project() {
+    for (Employee* emp : employees_) {
+        delete emp;
+    }
+    employees_.clear();
+}
 
 void Project::setProjectName(const QString& name) {
     projectName_ = name;

@@ -7,6 +7,10 @@ Task::Task(QString taskName, QDate startDate, QDate endDate, Employee* employee)
     id++;
 }
 
+Task::~Task() {
+    delete employee_;
+}
+
 void Task::setTaskName(const QString& name) {
     taskName_ = name;
 }
@@ -19,6 +23,10 @@ void Task::setEnd(const QDate& date) {
     endDate_ = date;
 }
 
+void Task::setEmployee(Employee* employee) {
+    employee->setTask(this);
+}
+
 QString Task::getTaskName() {
     return taskName_;
 }
@@ -29,6 +37,10 @@ QDate Task::getStartDate() {
 
 QDate Task::getEndDate() {
     return endDate_;
+}
+
+Employee* Task::getEmployee() {
+    return employee_;
 }
 
 int Task::getId() {

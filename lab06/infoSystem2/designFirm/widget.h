@@ -5,9 +5,6 @@
 #include <QLineEdit>
 #include <QPushButton>
 
-#include "task.h"
-#include "employee.h"
-#include "project.h"
 #include "company.h"
 
 QT_BEGIN_NAMESPACE
@@ -41,15 +38,14 @@ private:
     QLineEdit* day;
     QLineEdit* employee;
 
-    Employee *myEmployee;
-    Project *myProject;
-    Task *myTask;
-    Company *myCompany;
+    // Employee *myEmployee;
+    // Project *myProject;
+    // Task *myTask;
+    Company myCompany;
 
 private slots:
     void showTasksWindow();
-    // void saveEmployee();
-    // void saveTask();
-    // void saveProject();
+    void backToMain();
+    void saveInfo();
 };
 #endif // WIDGET_H
