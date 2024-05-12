@@ -1,3 +1,4 @@
+
 #include "company.h"
 
 Company::Company() : projects() {}
@@ -43,4 +44,8 @@ void Company::addEmployeeToProject(const QString& projectName, const QString& em
         }
     }
 }
+
+// Company parseJsonFile(const QString& filePath) {
+
+// }
 

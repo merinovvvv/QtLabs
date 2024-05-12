@@ -16,6 +16,10 @@ Widget::Widget(QWidget *parent)
 {
     ui->setupUi(this);
 
+    //Company company;
+
+    myCompany = Company::parseJsonFile("companyInfo.json");
+
     setWindowTitle("Design firm");
     setWindowIcon(QIcon(":/resource/img/money.png"));
 
@@ -287,6 +291,7 @@ void Widget::writeToJsonFile(const QString& fileName, const Company& company) {
 
     file.close();
 }
+
 
 void Widget::showTasksWindow() {
     tasksWindow = new QWidget();
