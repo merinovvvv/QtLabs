@@ -190,45 +190,45 @@ void Widget::saveCompanyInfo() {
 }
 
 // Converts the data structure to JSON
-QJsonObject Widget::projectToJson(const Project& project) {
-    QJsonObject projectObject;
-    projectObject["projectName"] = project.projectName;
+// QJsonObject Widget::projectToJson(const Project& project) {
+//     QJsonObject projectObject;
+//     projectObject["projectName"] = project.projectName;
 
-    QString startDateString = project.startDate.toString("yyyy-MM-dd");
-    projectObject["startDate"] = startDateString;
+//     QString startDateString = project.startDate.toString("yyyy-MM-dd");
+//     projectObject["startDate"] = startDateString;
 
-    QString endDateString = project.endDate.toString("yyyy-MM-dd");
-    projectObject["endDate"] = endDateString;
+//     QString endDateString = project.endDate.toString("yyyy-MM-dd");
+//     projectObject["endDate"] = endDateString;
 
-    QJsonObject employeesObject;
+//     QJsonObject employeesObject;
 
 
 
-    for (const QString& projectName : project.employees.keys()) {
-        QJsonArray employeeArray;
-        for (const Employee& employee : project.employees.value(projectName)) {
-            QJsonObject employeeObject;
-            employeeObject["fullName"] = employee.fullName;
+//     for (const QString& projectName : project.employees.keys()) {
+//         QJsonArray employeeArray;
+//         for (const Employee& employee : project.employees.value(projectName)) {
+//             QJsonObject employeeObject;
+//             employeeObject["fullName"] = employee.fullName;
 
-            QJsonArray tasksArray;
-            for (const Task& task : employee.tasks) {
-                QJsonObject taskObject;
-                taskObject["taskName"] = task.taskName;
+//             QJsonArray tasksArray;
+//             for (const Task& task : employee.tasks) {
+//                 QJsonObject taskObject;
+//                 taskObject["taskName"] = task.taskName;
 
-                QString completionDateString = task.completionDate.toString("yyyy-MM-dd");
-                taskObject["completionDate"] = completionDateString;
-                tasksArray.append(taskObject);
-            }
-            employeeObject["tasks"] = tasksArray;
+//                 QString completionDateString = task.completionDate.toString("yyyy-MM-dd");
+//                 taskObject["completionDate"] = completionDateString;
+//                 tasksArray.append(taskObject);
+//             }
+//             employeeObject["tasks"] = tasksArray;
 
-            employeeArray.append(employeeObject);
-        }
-        employeesObject[projectName] = employeeArray;
-    }
-    projectObject["employees"] = employeesObject;
+//             employeeArray.append(employeeObject);
+//         }
+//         employeesObject[projectName] = employeeArray;
+//     }
+//     projectObject["employees"] = employeesObject;
 
-    return projectObject;
-}
+//     return projectObject;
+// }
 
 //Converts the company to JSON
 QJsonObject Widget::companyToJson(const Company& company) {
@@ -354,7 +354,7 @@ void Widget::backToMain() {
             for (const Employee &employee : it.value()) {
                 if (employee.fullName == secondWindowEmployee) {
                     for (const Task &task : employee.tasks) {
-                        if (task.completionDate == secondWindowDate && employee.fullName == secondWindowEmployee) {
+                        if (secondWindowDate >= project.startDate && secondWindowDate <= task.completionDate) {
                             employeeTasksForToday.append(task.taskName);
                         }
                     }
@@ -441,31 +441,60 @@ void Widget::calculateAndDisplayEmployeeWork() {
     int targetMonth = month->text().toInt();
     int targetYear = year->text().toInt();
 
-    QMap<QString, int> employeeWork;
+    QDate firstDayOfMonth(targetYear, targetMonth, 1);
 
-    int daysDifference;
+    QDate tmpLastDayOfMonth(targetYear, targetMonth, 1);
+    int intLastDayOfMonth = tmpLastDayOfMonth.daysInMonth();
+
+    QDate lastDayOfMonth(targetYear, targetMonth, intLastDayOfMonth);
+
+    QMap<QString, int> employeeWork;
 
     for (const Project &project : myCompany.getProjects()) {
         for (const auto &employeeList : project.employees) {
             for (const Employee &employee : employeeList) {
+                int daysDifference = 0;
                 for (const Task &task : employee.tasks) {
-                    if (task.completionDate.month() == targetMonth && task.completionDate.year() == targetYear) {
+                    if (project.startDate.year() == targetYear && task.completionDate.year() == targetYear) {
+                        if (project.startDate.month() == targetMonth && task.completionDate.month() == targetMonth) {
+                            daysDifference = std::abs(task.completionDate.daysTo(project.startDate)) + 1;
+                        } else if (project.startDate.month() < targetMonth && task.completionDate.month() == targetMonth) {
+                            daysDifference = std::abs(task.completionDate.daysTo(firstDayOfMonth)) + 1;
+                        } else if (project.startDate.month() == targetMonth && task.completionDate.month() > targetMonth) {
+                            daysDifference = std::abs(task.completionDate.daysTo(lastDayOfMonth)) + 1;
+                        } else if (project.startDate.month() < targetMonth && task.completionDate.month() > targetMonth) {
+                            daysDifference = std::abs(lastDayOfMonth.daysTo(firstDayOfMonth)) + 1;
+                        } else {
+                            daysDifference = 0;
+                        }
+                    } else if (project.startDate.year() < targetYear && task.completionDate.year() == targetYear) {
+                        if (targetMonth == task.completionDate.month()) {
+                            daysDifference = std::abs(task.completionDate.daysTo(firstDayOfMonth)) + 1;
+                        } else if (targetMonth < task.completionDate.month()) {
+                            daysDifference = std::abs(lastDayOfMonth.daysTo(firstDayOfMonth)) + 1;
+                        } else {
+                            daysDifference = 0;
+                        }
+                    } else if (project.startDate.year() == targetYear && targetYear < task.completionDate.year()) {
                         if (project.startDate.month() == targetMonth) {
-                            daysDifference = std::abs(task.completionDate.daysTo(project.startDate));
+                            daysDifference = std::abs(lastDayOfMonth.daysTo(project.startDate)) + 1;
+                        } else if (project.startDate.month() < targetMonth) {
+                            daysDifference = std::abs(lastDayOfMonth.daysTo(firstDayOfMonth)) + 1;
+                        } else {
+                            daysDifference = 0;
                         }
-                        else if (project.startDate.month() < targetMonth) {
-                            QDate startOfMonth(targetYear, targetMonth, 1);
-                            daysDifference = std::abs(task.completionDate.daysTo(startOfMonth)) + 1;
-                        }
-                        // else {
-                        //     daysDifference = 0;
-                        // }
-                        employeeWork[employee.fullName] += daysDifference;
+                    } else if (project.startDate.year() < targetYear && targetYear < task.completionDate.year()) {
+                        daysDifference = std::abs(lastDayOfMonth.daysTo(firstDayOfMonth)) + 1;
+                    } else {
+                        daysDifference = 0;
                     }
+                    employeeWork[employee.fullName] += daysDifference;
                 }
             }
         }
     }
+
+
 
     QString resultText = "Employees and their total work days for month № " + QString::number(targetMonth) + ":\n";
     for (const QString &employeeName : employeeWork.keys()) {

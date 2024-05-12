@@ -48,7 +48,7 @@ private:
     Company myCompany;
     void writeToJsonFile(const QString& fileName, const Company& company);
     QJsonObject companyToJson(const Company& company);
-    QJsonObject projectToJson(const Project& project);
+    //QJsonObject projectToJson(const Project& project);
 
 private slots:
     void saveCompanyInfo();
