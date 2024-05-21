@@ -5,6 +5,8 @@
 #include <QtMath>
 #include <QDebug>
 #include <QGraphicsTextItem>
+#include <QShortcut>
+#include <QMouseEvent>
 
 #include "widget.h"
 #include "ui_widget.h"
@@ -14,6 +16,9 @@ Widget::Widget(QWidget *parent)
     , ui(new Ui::Widget)
 {
     ui->setupUi(this);
+
+    x_value = std::numeric_limits<double>::quiet_NaN();
+    y_value = std::numeric_limits<double>::quiet_NaN();
 
     color = Qt::red;
 
@@ -42,17 +47,25 @@ Widget::Widget(QWidget *parent)
     cLine = new QLineEdit();
     dLine = new QLineEdit();
 
+    xValueLine = new QLineEdit();
+    yValueLine = new QLineEdit();
+
+
     kLine->setEnabled(false);
     aLine->setEnabled(false);
     bLine->setEnabled(false);
     cLine->setEnabled(false);
     dLine->setEnabled(false);
+    xValueLine->setEnabled(false);
+    yValueLine->setEnabled(false);
 
     drawButton = new QPushButton();
     clearButton = new QPushButton();
+    calcButton = new QPushButton();
 
     drawButton->setEnabled(false);
     clearButton->setEnabled(false);
+    calcButton->setEnabled(false);
 
     QLabel* graphLabel = new QLabel();
     QLabel* colorLabel = new QLabel();
@@ -66,6 +79,8 @@ Widget::Widget(QWidget *parent)
     QLabel* bLabel = new QLabel();
     QLabel* cLabel = new QLabel();
     QLabel* dLabel = new QLabel();
+    QLabel* xValueLabel = new QLabel();
+    QLabel* yValueLabel = new QLabel();
 
 
     graphChoose->addItem("");
@@ -91,9 +106,13 @@ Widget::Widget(QWidget *parent)
     bLabel->setText("b:");
     cLabel->setText("c:");
     dLabel->setText("d:");
+    xValueLabel->setText("x value:");
+    yValueLabel->setText("y value:");
+
 
     drawButton->setText("Draw");
     clearButton->setText("Clear");
+    calcButton->setText("Calculate");
 
     QHBoxLayout* h1 = new QHBoxLayout();
     h1->addWidget(graphLabel);
@@ -141,6 +160,13 @@ Widget::Widget(QWidget *parent)
     h11->addWidget(dLabel);
     h11->addWidget(dLine);
 
+    QHBoxLayout* h12 = new QHBoxLayout();
+    h12->addWidget(xValueLabel);
+    h12->addWidget(xValueLine);
+
+    QHBoxLayout* h13 = new QHBoxLayout();
+    h13->addWidget(yValueLabel);
+    h13->addWidget(yValueLine);
 
     settings->addLayout(h1);
     settings->addLayout(h2);
@@ -154,6 +180,9 @@ Widget::Widget(QWidget *parent)
     settings->addLayout(h10);
     settings->addLayout(h11);
     settings->addWidget(drawButton);
+    settings->addLayout(h12);
+    settings->addWidget(calcButton);
+    settings->addLayout(h13);
     settings->addWidget(clearButton);
 
     graphSurface = new QGraphicsScene();
@@ -174,43 +203,128 @@ Widget::Widget(QWidget *parent)
 
     setLayout(generalLayout);
 
+    QShortcut *zoomInShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_P), this);
+    QShortcut *zoomOutShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_M), this);
+
     connect (graphChoose, SIGNAL(currentIndexChanged(int)), this, SLOT(graphChanged()));
     connect (colorChoose, SIGNAL(currentIndexChanged(int)), this, SLOT(colorChanged()));
     connect (drawButton, SIGNAL(clicked()), this, SLOT(drawGraph()));
     connect (clearButton, SIGNAL(clicked()), this, SLOT(clearGraph()));
+    connect (calcButton, SIGNAL(clicked()), this, SLOT(calcValue()));
+
+    connect(zoomInShortcut, SIGNAL(activated()), this, SLOT(zoomIn()));
+    connect(zoomOutShortcut, SIGNAL(activated()), this, SLOT(zoomOut()));
 }
 
 void Widget::drawCoordinatePlane(QGraphicsScene* scene) {
+    //scene->clear();
+
     qreal sceneWidth = scene->width();
     qreal sceneHeight = scene->height();
 
+    QRectF sceneRect = scene->sceneRect();
+    QPointF topLeftCorner = sceneRect.topLeft();
 
-    // adding horizontal lines on coordinate plane
-    for (qreal y = 0; y <= sceneHeight; y += step) {
-        scene->addLine(0, y, sceneWidth, y, QPen(Qt::gray));
-
-        //QGraphicsTextItem* textItem = scene->addText(QString::number(sceneHeight / 2 - y), QFont("Arial", 6)); // Маленький размер шрифта
-        //textItem->setPos(sceneWidth / 2 - 30, y - 5); // Положение текста (слева от оси X)
+    // adding horizontal lines below center
+    for (qreal y = sceneHeight/2; y <= sceneHeight; y += step) {
+        scene->addLine(topLeftCorner.x(), y, sceneWidth, y, QPen(Qt::gray));
     }
 
-     // adding vertical lines on coordinate plane
-    for (qreal x = 0; x <= sceneWidth; x += step) {
-        scene->addLine(x, 0, x, sceneHeight, QPen(Qt::gray));
-
-        //QGraphicsTextItem* textItem = scene->addText(QString::number(x - sceneWidth / 2), QFont("Arial", 6)); // Маленький размер шрифта
-        //textItem->setPos(x - 10, sceneHeight / 2 + 5); // Положение текста (под осью Y)
+    // adding horizontal lines above center
+    for (qreal y =  sceneHeight/2; y >= topLeftCorner.y(); y -= step) {
+        scene->addLine(topLeftCorner.x(), y, sceneWidth, y, QPen(Qt::gray));
     }
 
-    // adding coordinate axes
-    scene->addLine(0, sceneHeight / 2, sceneWidth, sceneHeight / 2, QPen(Qt::black, 2)); // Горизонтальная ось
-    scene->addLine(sceneWidth / 2, 0, sceneWidth / 2, sceneHeight, QPen(Qt::black, 2)); // Вертикальная ось
+
+    // adding vertical lines on the right
+    for (qreal x = sceneWidth/2; x <= sceneWidth; x += step) {
+        scene->addLine(x, topLeftCorner.y(), x, sceneHeight, QPen(Qt::gray));
+    }
+
+    // adding vertical lines on the left
+    for (qreal x = sceneWidth/2; x >= topLeftCorner.x(); x -= step) {
+        scene->addLine(x, topLeftCorner.y(), x, sceneHeight, QPen(Qt::gray));
+    }
+
+    // adding axes
+    scene->addLine(topLeftCorner.x(), sceneHeight/2, sceneWidth, sceneHeight/2, QPen(Qt::black, 2)); // horizontal
+    scene->addLine(sceneWidth/2, topLeftCorner.y(), sceneWidth/2, sceneHeight, QPen(Qt::black, 2)); // vertical
+
+    //qDebug() << sceneWidth/2;
+
+
+    QTransform transform;
+    transform.translate(sceneWidth / 2, sceneHeight / 2);
+    transform.scale(1, -1);
+
+    // labels on the Ox on the right
+    for (qreal x = 0, i = 0; x <= sceneWidth / 2; x += step, ++i) {
+        if (x != 0) {
+            QPointF labelPos = transform.map(QPointF(x, 0));
+            QGraphicsTextItem* textItem = scene->addText(QString::number(i), QFont("Arial", 6));
+            textItem->setPos(labelPos);
+        }
+    }
+
+    // labels on the Ox on the left
+    for (qreal x = -step, i = -1; x >= -sceneWidth / 2; x -= step, --i) {
+        QPointF labelPos = transform.map(QPointF(x, 0));
+        QGraphicsTextItem* textItem = scene->addText(QString::number(i), QFont("Arial", 6));
+        textItem->setPos(labelPos);
+    }
+
+    // labels on the Oy above the center
+    for (qreal y = step, i = 1; y <= sceneHeight / 2; y += step, ++i) {
+        QPointF labelPos = transform.map(QPointF(0, y));
+        QGraphicsTextItem* textItem = scene->addText(QString::number(i), QFont("Arial", 6));
+        textItem->setPos(labelPos);
+    }
+
+    // labels on the Oy below the center
+    for (qreal y = -step, i = -1; y >= -sceneHeight / 2; y -= step, --i) {
+        QPointF labelPos = transform.map(QPointF(0, y));
+        QGraphicsTextItem* textItem = scene->addText(QString::number(i), QFont("Arial", 6));
+        textItem->setPos(labelPos);
+    }
+
+    //zero label
+    QPointF zeroLabelPos = transform.map(QPointF(0, 0));
+    QGraphicsTextItem* textItem = scene->addText(QString::number(0), QFont("Arial", 6));
+    textItem->setPos(zeroLabelPos);
+
+
+    //arrows on the ends of axes
+    qreal arrowSize = 10;
+    QPolygonF arrowHead;
+    arrowHead << QPointF(0, 0) << QPointF(-arrowSize / 2, -arrowSize) << QPointF(arrowSize / 2, -arrowSize);
+
+    QPointF arrowXPos = transform.map(QPointF(sceneWidth/2, 0));
+    QPointF arrowYPos = transform.map(QPointF(0, sceneHeight/2));
+
+
+    // Ox arrow
+    QGraphicsPolygonItem* xArrowPositive = scene->addPolygon(arrowHead, QPen(Qt::black), QBrush(Qt::black));
+
+
+    xArrowPositive->setPos(arrowXPos.x(), arrowXPos.y());
+    xArrowPositive->setRotation(-90);
+
+    // Oy arrow
+    QGraphicsPolygonItem* yArrowPositive = scene->addPolygon(arrowHead, QPen(Qt::black), QBrush(Qt::black));
+    yArrowPositive->setPos(arrowYPos.x(), arrowYPos.y());
+    yArrowPositive->setRotation(180);
+
 }
+
 
 void Widget::graphChanged() {
 
     if (graphChoose->currentText() != "") {
         drawButton->setEnabled(true);
+        calcButton->setEnabled(true);
+        xValueLine->setEnabled(true);
     }
+
 
     xMinLine->setEnabled(true);
     xMaxLine->setEnabled(true);
@@ -252,6 +366,12 @@ void Widget::colorChanged() {
 }
 
 void Widget::drawGraph() {
+
+    for (QGraphicsLineItem* line : lines) {
+        graphSurface->removeItem(line);
+        delete line;
+    }
+    lines.clear();
 
     QTransform transform;
     transform.translate(graphSurface->width()/2, graphSurface->height()/2);
@@ -302,7 +422,11 @@ void Widget::drawGraph() {
             if (!previousPoint.isNull()) {
                 QPen pen(color);
                 qDebug() << color.name();
-                graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
+
+                QGraphicsLineItem* lineItem = graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
+                lines.append(lineItem);
+
+                //graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
             }
             previousPoint = scenePoint;
         }
@@ -318,9 +442,124 @@ void Widget::clearGraph() {
     bLine->clear();
     cLine->clear();
     dLine->clear();
+    xValueLine->clear();
+    yValueLine->clear();
+
+    for (QGraphicsLineItem* line : lines) {
+        graphSurface->removeItem(line);
+        delete line;
+    }
+    lines.clear();
+
     graphSurface->clear();
     drawCoordinatePlane(graphSurface);
     clearButton->setEnabled(false);
+
+    x_value = std::numeric_limits<double>::quiet_NaN();
+    y_value = std::numeric_limits<double>::quiet_NaN();
+}
+
+void Widget::calcValue() {
+    x_value = xValueLine->text().toDouble();
+
+    if (graphChoose->currentText() == linear) {
+        y_value = k_ * x_value + b_;
+    } else if (graphChoose->currentText() == quadro) {
+        y_value = a_ * x_value * x_value + b_ * x_value + c_;
+    } else if (graphChoose->currentText() == cubic) {
+        y_value = a_ * x_value * x_value * x_value + b_ * x_value * x_value + c_ * x_value + d_;
+    } else if (graphChoose->currentText() == cubic) {
+        qreal x_value_tmp = x_value;
+        for (size_t i = 0; i < b_; ++i) {
+            x_value_tmp *= x_value;
+        }
+        y_value = a_ * x_value_tmp + qSin(c_ * x_value);
+    } else {
+        y_value = std::numeric_limits<double>::quiet_NaN();
+    }
+
+    yValueLine->setText(QString::number(y_value));
+}
+
+void Widget::zoomIn() {
+    step *= 1.2;
+    drawCoordinatePlane(graphSurface);
+    drawGraph();
+}
+
+void Widget::zoomOut() {
+    step /= 1.2;
+    drawCoordinatePlane(graphSurface);
+    drawGraph();
+}
+
+void Widget::mousePressEvent(QMouseEvent* event) {
+
+    qreal sceneWidth = graphSurface->width();
+    qreal sceneHeight = graphSurface->height();
+
+    //QRectF sceneRect = graphSurface->sceneRect();
+    //QPointF topLeftCorner = sceneRect.topLeft();
+
+    qreal sceneCenterX = sceneWidth / 2;
+    qreal sceneCenterY = sceneHeight / 2;
+
+    QPoint centerPoint = graphShow->mapToParent(QPoint(sceneCenterX, sceneCenterY));
+    //qDebug() << centerPoint.x() << " " << centerPoint.y();
+
+    // QTransform transform;
+    // transform.translate(-sceneCenterX, -sceneCenterY);
+    // //transform.scale(1, -1);
+
+    // QPointF transformedPoint = transform.map(QPointF(sceneCenterX, sceneCenterY));
+    // qDebug() << "Transformed Point: " << transformedPoint.x() << " " << transformedPoint.y();
+
+
+    QPoint topLeftCorner = graphShow->mapToParent(QPoint(0, 0));// We get the coordinates of the upper-left corner of the scene in the widget system
+    QPoint bottomRightCorner = graphShow->mapToParent(QPoint(graphShow->width(), graphShow->height())); // We get the coordinates of the bottom right corner of the scene in the widget system
+
+    qDebug() << topLeftCorner.x() << " " << topLeftCorner.y();
+
+    QPoint cursorClick = event->pos();
+    qDebug() << cursorClick.x() << " " << cursorClick.y();
+
+    if (cursorClick.x() < topLeftCorner.x() || cursorClick.y() < topLeftCorner.y() || cursorClick.x() > bottomRightCorner.x() || cursorClick.y() > bottomRightCorner.y()) {
+        return;
+    }
+
+    qreal distanceToPoint = cursorClick.x() - topLeftCorner.x();
+    qreal distanceToCenter = centerPoint.x() - topLeftCorner.x();
+    qreal distance = distanceToCenter - distanceToPoint;
+
+    qreal x;
+
+    x = -1 * distance / step;
+    x_value = x;
+
+    if (lines.isEmpty()) {
+        xValueLine->setText(QString("%1").arg(x));
+        y_value = std::numeric_limits<double>::quiet_NaN();
+        yValueLine->setText(QString("%1").arg(y_value));
+        return;
+    }
+
+    // Calculate y based on the selected graph type and the x value
+    QString selectedGraph = graphChoose->currentText();
+    if (selectedGraph == linear) {
+        y_value = k_ * x + b_;
+    } else if (selectedGraph == quadro) {
+        y_value = a_ * x * x + b_ * x + c_;
+    } else if (selectedGraph == cubic) {
+        y_value = a_ * x * x * x + b_ * x * x + c_ * x + d_;
+    } else if (selectedGraph == random) {
+        y_value = a_ * pow(x, b_) + sin(c_ * x);
+    }
+
+    // Display the calculated y value in yValueLine
+    yValueLine->setText(QString("%1").arg(y_value));
+
+    // Display the x value in xValueLine
+    xValueLine->setText(QString("%1").arg(x));
 }
 
 
@@ -328,3 +567,5 @@ Widget::~Widget()
 {
     delete ui;
 }
+
+//TODO x and y min and max values

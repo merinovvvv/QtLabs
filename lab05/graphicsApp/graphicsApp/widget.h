@@ -7,6 +7,7 @@
 #include <QComboBox>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QLabel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -24,6 +25,8 @@ public:
 
 private:
     Ui::Widget *ui;
+
+    QList <QGraphicsLineItem*> lines;
 
     QComboBox* graphChoose;
     QComboBox* colorChoose;
@@ -49,9 +52,12 @@ private:
     QLineEdit* bLine;
     QLineEdit* cLine;
     QLineEdit* dLine;
+    QLineEdit* xValueLine;
+    QLineEdit* yValueLine;
 
     QPushButton* drawButton;
     QPushButton* clearButton;
+    QPushButton* calcButton;
 
     QGraphicsScene* graphSurface;
     QGraphicsView* graphShow;
@@ -63,19 +69,29 @@ private:
 
     QColor color;
 
-    qreal step = 10;
+    qreal step = 50;
+
+    qreal x_value;
+    qreal y_value;
 
     // qreal leftBound;
     // qreal bottomBound;
 
+    QList <QString> graphList;
+
     void drawCoordinatePlane(QGraphicsScene*);
+
+protected:
+    void mousePressEvent(QMouseEvent* event) override;
+
 
 private slots:
     void graphChanged();
     void colorChanged();
     void drawGraph();
     void clearGraph();
-
-
+    void calcValue();
+    void zoomIn();
+    void zoomOut();
 };
 #endif // WIDGET_H
