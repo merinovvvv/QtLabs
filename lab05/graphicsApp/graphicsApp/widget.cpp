@@ -458,15 +458,31 @@ void Widget::drawGraph() {
             }
         }
 
+        qreal minY = std::numeric_limits<qreal>::infinity();
+        qreal maxY = -std::numeric_limits<qreal>::infinity();
 
-        QPointF leftBorder = graphShow->mapToParent(QPoint(minX, 0));
-        QPointF rightBorder = graphShow->mapToParent(QPoint(maxX, 0));
+        for (const QPointF& point : points) {
+            if (point.y() > minY) {
+                minY = point.y();
+            }
+            if (point.y() < maxY) {
+                maxY = point.y();
+            }
+        }
+
+
+        QPointF leftBorder = graphShow->mapToParent(QPoint(minX, minY));
+        QPointF rightBorder = graphShow->mapToParent(QPoint(maxX, maxY));
 
         x_min_widget = leftBorder.x();
         x_max_widget = rightBorder.x();
+        y_min_widget = leftBorder.y();
+        y_max_widget = rightBorder.y();
 
-        params.xMaxWidget =  x_min_widget;
-        params.xMinWidget = x_max_widget;
+        params.xMaxWidget =  x_max_widget;
+        params.xMinWidget = x_min_widget;
+        params.yMaxWidget =  y_max_widget;
+        params.yMinWidget = y_min_widget;
 
         graphs.append(params);
 }
@@ -506,6 +522,12 @@ void Widget::calcValue() {
         return;
     }
 
+    if (xValueLine->text().toDouble() < x_min_ || xValueLine->text().toDouble() > x_max_) {
+        y_value = std::numeric_limits<double>::quiet_NaN();
+        yValueLine->setText("Out of bounds.");
+        return;
+    }
+
     x_value = xValueLine->text().toDouble();
 
     if (graphChoose->currentText() == linear) {
@@ -520,6 +542,8 @@ void Widget::calcValue() {
             x_value_tmp *= x_value;
         }
         y_value = a_ * x_value_tmp + qSin(c_ * x_value);
+    } else if (graphChoose->currentText() == random) {
+        y_value = a_ * pow(x_value, b_) + sin(c_ * x_value);
     } else {
         y_value = std::numeric_limits<double>::quiet_NaN();
     }
@@ -709,16 +733,32 @@ void Widget::drawSingleGraph(GraphParams& params) {
         }
     }
 
+    qreal minY = std::numeric_limits<qreal>::infinity();
+    qreal maxY = -std::numeric_limits<qreal>::infinity();
+
+    for (const QPointF& point : points) {
+        if (point.y() > minY) {
+            minY = point.y();
+        }
+        if (point.y() < maxY) {
+            maxY = point.y();
+        }
+    }
 
 
-    QPointF leftBorder = graphShow->mapToParent(QPoint(minX, 0));
-    QPointF rightBorder = graphShow->mapToParent(QPoint(maxX, 0));
+
+    QPointF leftBorder = graphShow->mapToParent(QPoint(minX, minY));
+    QPointF rightBorder = graphShow->mapToParent(QPoint(maxX, maxY));
 
     x_min_widget = leftBorder.x();
     x_max_widget = rightBorder.x();
+    y_min_widget = leftBorder.y();
+    y_max_widget = rightBorder.y();
 
-    params.xMaxWidget =  x_min_widget;
-    params.xMinWidget = x_max_widget;
+    params.xMaxWidget =  x_max_widget;
+    params.xMinWidget = x_min_widget;
+    params.yMaxWidget =  y_max_widget;
+    params.yMinWidget = y_min_widget;
 }
 
 void Widget::redrawGraphs() {

@@ -34,6 +34,8 @@ private:
         double xMin, xMax, yMin, yMax;
         double xMinWidget;
         double xMaxWidget;
+        double yMinWidget;
+        double yMaxWidget;
     };
 
     QList<GraphParams> graphs;
