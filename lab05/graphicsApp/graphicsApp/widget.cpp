@@ -389,9 +389,6 @@ void Widget::drawGraph() {
     params.yMin = yMinLine->text().toDouble();
     params.yMax = yMaxLine->text().toDouble();
 
-    graphs.append(params);
-
-
     QTransform transform;
     transform.translate(graphSurface->width()/2, graphSurface->height()/2);
     transform.scale(step, -step);
@@ -440,7 +437,7 @@ void Widget::drawGraph() {
 
             if (!previousPoint.isNull()) {
                 QPen pen(color);
-                qDebug() << color.name();
+                //qDebug() << color.name();
 
                 QGraphicsLineItem* lineItem = graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
                 lines.append(lineItem);
@@ -449,6 +446,29 @@ void Widget::drawGraph() {
             }
             previousPoint = scenePoint;
         }
+        qreal minX = std::numeric_limits<qreal>::infinity();
+        qreal maxX = -std::numeric_limits<qreal>::infinity();
+
+        for (const QPointF& point : points) {
+            if (point.x() < minX) {
+                minX = point.x();
+            }
+            if (point.x() > maxX) {
+                maxX = point.x();
+            }
+        }
+
+
+        QPointF leftBorder = graphShow->mapToParent(QPoint(minX, 0));
+        QPointF rightBorder = graphShow->mapToParent(QPoint(maxX, 0));
+
+        x_min_widget = leftBorder.x();
+        x_max_widget = rightBorder.x();
+
+        params.xMaxWidget =  x_min_widget;
+        params.xMinWidget = x_max_widget;
+
+        graphs.append(params);
 }
 
 void Widget::clearGraph() {
@@ -560,10 +580,19 @@ void Widget::mousePressEvent(QMouseEvent* event) {
     QPoint topLeftCorner = graphShow->mapToParent(QPoint(0, 0));// We get the coordinates of the upper-left corner of the scene in the widget system
     QPoint bottomRightCorner = graphShow->mapToParent(QPoint(graphShow->width(), graphShow->height())); // We get the coordinates of the bottom right corner of the scene in the widget system
 
-    qDebug() << topLeftCorner.x() << " " << topLeftCorner.y();
+
+    // QPointF leftBoundPointInScene(x_min_widget, y_min_widget);
+    // QPoint leftBoundPointInWidget  = graphShow->mapFromScene(leftBoundPointInScene);
+    // QPoint leftBoundPointInGlobal  = graphShow->mapToGlobal(leftBoundPointInWidget);
+
+    // QPointF rightBoundPointInScene(x_max_, y_max_);
+    // QPoint rightBoundPointInWidget  = graphShow->mapFromScene(rightBoundPointInScene);
+    // QPoint rightBoundPointInGlobal  = graphShow->mapToGlobal(rightBoundPointInWidget);
+
+    //qDebug() << topLeftCorner.x() << " " << topLeftCorner.y();
 
     QPoint cursorClick = event->pos();
-    qDebug() << cursorClick.x() << " " << cursorClick.y();
+    //qDebug() << cursorClick.x() << " " << cursorClick.y();
 
     if (cursorClick.x() < topLeftCorner.x() || cursorClick.y() < topLeftCorner.y() || cursorClick.x() > bottomRightCorner.x() || cursorClick.y() > bottomRightCorner.y()) {
         return;
@@ -582,6 +611,18 @@ void Widget::mousePressEvent(QMouseEvent* event) {
         xValueLine->setText(QString("%1").arg(x));
         y_value = std::numeric_limits<double>::quiet_NaN();
         yValueLine->setText(QString("%1").arg(y_value));
+        return;
+    }
+
+    qDebug() << cursorClick.x() << " " << cursorClick.y();
+    qDebug() << x_min_widget << " " << x_max_widget;
+    // qDebug() << "LeftGraphBound: " << leftBoundPointInGlobal.x() << " " << leftBoundPointInGlobal.y();
+    // qDebug() << "RightGraphBound: " << rightBoundPointInGlobal.x() << " " << rightBoundPointInGlobal.y();
+
+
+    if (cursorClick.x() < x_min_widget || cursorClick.x() > x_max_widget) {
+        xValueLine->setText(QString("%1").arg(x));
+        yValueLine->setText(QString("Out of bounds."));
         return;
     }
 
@@ -604,7 +645,7 @@ void Widget::mousePressEvent(QMouseEvent* event) {
     xValueLine->setText(QString("%1").arg(x));
 }
 
-void Widget::drawSingleGraph(const GraphParams& params) {
+void Widget::drawSingleGraph(GraphParams& params) {
 
     QTransform transform;
     transform.translate(graphSurface->width()/2, graphSurface->height()/2);
@@ -646,7 +687,7 @@ void Widget::drawSingleGraph(const GraphParams& params) {
 
         if (!previousPoint.isNull()) {
             QPen pen(color);
-            qDebug() << color.name();
+            //qDebug() << color.name();
 
             QGraphicsLineItem* lineItem = graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
             lines.append(lineItem);
@@ -656,6 +697,28 @@ void Widget::drawSingleGraph(const GraphParams& params) {
         previousPoint = scenePoint;
     }
 
+    qreal minX = std::numeric_limits<qreal>::infinity();
+    qreal maxX = -std::numeric_limits<qreal>::infinity();
+
+    for (const QPointF& point : points) {
+        if (point.x() < minX) {
+            minX = point.x();
+        }
+        if (point.x() > maxX) {
+            maxX = point.x();
+        }
+    }
+
+
+
+    QPointF leftBorder = graphShow->mapToParent(QPoint(minX, 0));
+    QPointF rightBorder = graphShow->mapToParent(QPoint(maxX, 0));
+
+    x_min_widget = leftBorder.x();
+    x_max_widget = rightBorder.x();
+
+    params.xMaxWidget =  x_min_widget;
+    params.xMinWidget = x_max_widget;
 }
 
 void Widget::redrawGraphs() {
@@ -665,7 +728,7 @@ void Widget::redrawGraphs() {
     // }
     // lines.clear();
 
-    for (const GraphParams& params : graphs) {
+    for (GraphParams& params : graphs) {
         drawSingleGraph(params);
     }
 

@@ -32,6 +32,8 @@ private:
         double k;
         double a, b, c, d;
         double xMin, xMax, yMin, yMax;
+        double xMinWidget;
+        double xMaxWidget;
     };
 
     QList<GraphParams> graphs;
@@ -42,9 +44,16 @@ private:
     QComboBox* colorChoose;
 
     qreal x_min_;
+    qreal x_min_widget;
+
     qreal x_max_;
+    qreal x_max_widget;
+
     qreal y_min_;
+    qreal y_min_widget;
+
     qreal y_max_;
+    qreal y_max_widget;
 
     qreal k_;
     qreal a_;
@@ -91,7 +100,7 @@ private:
 
     void drawCoordinatePlane(QGraphicsScene*);
     void redrawGraphs();
-    void drawSingleGraph(const GraphParams& params);
+    void drawSingleGraph(GraphParams& params);
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;
