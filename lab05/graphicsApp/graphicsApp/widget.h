@@ -36,6 +36,7 @@ private:
         double xMaxWidget;
         double yMinWidget;
         double yMaxWidget;
+        QList <QPointF> pointList;
     };
 
     QList<GraphParams> graphs;

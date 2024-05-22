@@ -431,60 +431,62 @@ void Widget::drawGraph() {
         points.append(p);
     }
 
-        QPointF previousPoint;
-        for (const QPointF& point : points) {
-            QPointF scenePoint(point.x(), point.y());
+    QPointF previousPoint;
+    for (const QPointF& point : points) {
+        QPointF scenePoint(point.x(), point.y());
+        QPointF scenePointWidget = graphShow->mapToParent(QPoint(scenePoint.x(), scenePoint.y()));
+        params.pointList.append(scenePointWidget);
 
-            if (!previousPoint.isNull()) {
-                QPen pen(color);
-                //qDebug() << color.name();
+        if (!previousPoint.isNull()) {
+            QPen pen(color);
+            //qDebug() << color.name();
 
-                QGraphicsLineItem* lineItem = graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
-                lines.append(lineItem);
+            QGraphicsLineItem* lineItem = graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
+            lines.append(lineItem);
 
-                //graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
-            }
-            previousPoint = scenePoint;
+            //graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
         }
-        qreal minX = std::numeric_limits<qreal>::infinity();
-        qreal maxX = -std::numeric_limits<qreal>::infinity();
+        previousPoint = scenePoint;
+    }
+    qreal minX = std::numeric_limits<qreal>::infinity();
+    qreal maxX = -std::numeric_limits<qreal>::infinity();
 
-        for (const QPointF& point : points) {
-            if (point.x() < minX) {
-                minX = point.x();
-            }
-            if (point.x() > maxX) {
-                maxX = point.x();
-            }
+    for (const QPointF& point : points) {
+        if (point.x() < minX) {
+            minX = point.x();
         }
-
-        qreal minY = std::numeric_limits<qreal>::infinity();
-        qreal maxY = -std::numeric_limits<qreal>::infinity();
-
-        for (const QPointF& point : points) {
-            if (point.y() > minY) {
-                minY = point.y();
-            }
-            if (point.y() < maxY) {
-                maxY = point.y();
-            }
+        if (point.x() > maxX) {
+            maxX = point.x();
         }
+    }
+
+    qreal minY = std::numeric_limits<qreal>::infinity();
+    qreal maxY = -std::numeric_limits<qreal>::infinity();
+
+    for (const QPointF& point : points) {
+        if (point.y() > minY) {
+            minY = point.y();
+        }
+        if (point.y() < maxY) {
+            maxY = point.y();
+        }
+    }
 
 
-        QPointF leftBorder = graphShow->mapToParent(QPoint(minX, minY));
-        QPointF rightBorder = graphShow->mapToParent(QPoint(maxX, maxY));
+    QPointF leftBorder = graphShow->mapToParent(QPoint(minX, minY));
+    QPointF rightBorder = graphShow->mapToParent(QPoint(maxX, maxY));
 
-        x_min_widget = leftBorder.x();
-        x_max_widget = rightBorder.x();
-        y_min_widget = leftBorder.y();
-        y_max_widget = rightBorder.y();
+    x_min_widget = leftBorder.x();
+    x_max_widget = rightBorder.x();
+    y_min_widget = leftBorder.y();
+    y_max_widget = rightBorder.y();
 
-        params.xMaxWidget =  x_max_widget;
-        params.xMinWidget = x_min_widget;
-        params.yMaxWidget =  y_max_widget;
-        params.yMinWidget = y_min_widget;
+    params.xMaxWidget =  x_max_widget;
+    params.xMinWidget = x_min_widget;
+    params.yMaxWidget =  y_max_widget;
+    params.yMinWidget = y_min_widget;
 
-        graphs.append(params);
+    graphs.append(params);
 }
 
 void Widget::clearGraph() {
@@ -507,6 +509,12 @@ void Widget::clearGraph() {
         delete line;
     }
     lines.clear();
+
+    for (GraphParams& params : graphs) {
+        params.pointList.clear();
+    }
+    graphs.clear();
+
 
     //graphSurface->clear();
     drawCoordinatePlane(graphSurface);
@@ -650,8 +658,23 @@ void Widget::mousePressEvent(QMouseEvent* event) {
         return;
     }
 
+    qreal minDistance = std::numeric_limits<qreal>::max();
+    QPointF closestPoint;
+    QString closestGraph;
+
+    for (const GraphParams& params : graphs) {
+        for (const QPointF& graphPoint : params.pointList) {
+            qreal distance = QLineF(graphPoint, cursorClick).length();
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestPoint = graphPoint;
+                closestGraph = params.type;
+            }
+        }
+    }
+
     // Calculate y based on the selected graph type and the x value
-    QString selectedGraph = graphChoose->currentText();
+    QString selectedGraph = closestGraph;
     if (selectedGraph == linear) {
         y_value = k_ * x + b_;
     } else if (selectedGraph == quadro) {
@@ -708,6 +731,8 @@ void Widget::drawSingleGraph(GraphParams& params) {
     QPointF previousPoint;
     for (const QPointF& point : points) {
         QPointF scenePoint(point.x(), point.y());
+        QPointF scenePointWidget = graphShow->mapToParent(QPoint(scenePoint.x(), scenePoint.y()));
+        params.pointList.append(scenePointWidget);
 
         if (!previousPoint.isNull()) {
             QPen pen(color);
