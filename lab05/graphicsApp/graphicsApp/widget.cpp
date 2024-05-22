@@ -217,7 +217,7 @@ Widget::Widget(QWidget *parent)
 }
 
 void Widget::drawCoordinatePlane(QGraphicsScene* scene) {
-    //scene->clear();
+    scene->clear();
 
     qreal sceneWidth = scene->width();
     qreal sceneHeight = scene->height();
@@ -367,11 +367,11 @@ void Widget::colorChanged() {
 
 void Widget::drawGraph() {
 
-    for (QGraphicsLineItem* line : lines) {
-        graphSurface->removeItem(line);
-        delete line;
-    }
-    lines.clear();
+    // for (QGraphicsLineItem* line : lines) {
+    //     graphSurface->removeItem(line);
+    //     delete line;
+    // }
+    // lines.clear();
 
     QTransform transform;
     transform.translate(graphSurface->width()/2, graphSurface->height()/2);
@@ -445,13 +445,15 @@ void Widget::clearGraph() {
     xValueLine->clear();
     yValueLine->clear();
 
+    //calcButton->setEnabled(false);
+
     for (QGraphicsLineItem* line : lines) {
         graphSurface->removeItem(line);
         delete line;
     }
     lines.clear();
 
-    graphSurface->clear();
+    //graphSurface->clear();
     drawCoordinatePlane(graphSurface);
     clearButton->setEnabled(false);
 
@@ -460,6 +462,11 @@ void Widget::clearGraph() {
 }
 
 void Widget::calcValue() {
+
+    if (xMinLine->text().isEmpty() || xMaxLine->text().isEmpty() || yMinLine->text().isEmpty() || yMaxLine->text().isEmpty()) {
+        return;
+    }
+
     x_value = xValueLine->text().toDouble();
 
     if (graphChoose->currentText() == linear) {
@@ -481,13 +488,27 @@ void Widget::calcValue() {
     yValueLine->setText(QString::number(y_value));
 }
 
-void Widget::zoomIn() {
+void Widget::zoomIn() { //TODO
+
+    for (QGraphicsLineItem* line : lines) {
+        graphSurface->removeItem(line);
+        delete line;
+    }
+    lines.clear();
+
     step *= 1.2;
     drawCoordinatePlane(graphSurface);
     drawGraph();
 }
 
 void Widget::zoomOut() {
+
+    for (QGraphicsLineItem* line : lines) {
+        graphSurface->removeItem(line);
+        delete line;
+    }
+    lines.clear();
+
     step /= 1.2;
     drawCoordinatePlane(graphSurface);
     drawGraph();
@@ -567,5 +588,3 @@ Widget::~Widget()
 {
     delete ui;
 }
-
-//TODO x and y min and max values
