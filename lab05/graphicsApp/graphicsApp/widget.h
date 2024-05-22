@@ -26,6 +26,16 @@ public:
 private:
     Ui::Widget *ui;
 
+    struct GraphParams {
+        QString type;
+        QColor color;
+        double k;
+        double a, b, c, d;
+        double xMin, xMax, yMin, yMax;
+    };
+
+    QList<GraphParams> graphs;
+
     QList <QGraphicsLineItem*> lines;
 
     QComboBox* graphChoose;
@@ -80,6 +90,8 @@ private:
     QList <QString> graphList;
 
     void drawCoordinatePlane(QGraphicsScene*);
+    void redrawGraphs();
+    void drawSingleGraph(const GraphParams& params);
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;

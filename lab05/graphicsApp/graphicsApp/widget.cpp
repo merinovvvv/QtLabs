@@ -373,6 +373,25 @@ void Widget::drawGraph() {
     // }
     // lines.clear();
 
+
+    GraphParams params;
+    params.type = graphChoose->currentText();
+    params.color = color;
+
+    params.k = kLine->text().toDouble();
+    params.a = aLine->text().toDouble();
+    params.b = bLine->text().toDouble();
+    params.c = cLine->text().toDouble();
+    params.d = dLine->text().toDouble();
+
+    params.xMin = xMinLine->text().toDouble();
+    params.xMax = xMaxLine->text().toDouble();
+    params.yMin = yMinLine->text().toDouble();
+    params.yMax = yMaxLine->text().toDouble();
+
+    graphs.append(params);
+
+
     QTransform transform;
     transform.translate(graphSurface->width()/2, graphSurface->height()/2);
     transform.scale(step, -step);
@@ -488,7 +507,7 @@ void Widget::calcValue() {
     yValueLine->setText(QString::number(y_value));
 }
 
-void Widget::zoomIn() { //TODO
+void Widget::zoomIn() {
 
     for (QGraphicsLineItem* line : lines) {
         graphSurface->removeItem(line);
@@ -498,7 +517,8 @@ void Widget::zoomIn() { //TODO
 
     step *= 1.2;
     drawCoordinatePlane(graphSurface);
-    drawGraph();
+    redrawGraphs();
+    //drawGraph();
 }
 
 void Widget::zoomOut() {
@@ -511,7 +531,8 @@ void Widget::zoomOut() {
 
     step /= 1.2;
     drawCoordinatePlane(graphSurface);
-    drawGraph();
+    redrawGraphs();
+    //drawGraph();
 }
 
 void Widget::mousePressEvent(QMouseEvent* event) {
@@ -581,6 +602,74 @@ void Widget::mousePressEvent(QMouseEvent* event) {
 
     // Display the x value in xValueLine
     xValueLine->setText(QString("%1").arg(x));
+}
+
+void Widget::drawSingleGraph(const GraphParams& params) {
+
+    QTransform transform;
+    transform.translate(graphSurface->width()/2, graphSurface->height()/2);
+    transform.scale(step, -step);
+
+    QString currentGraph = params.type;
+    QColor color = params.color;
+
+    double xMin = params.xMin;
+    double xMax = params.xMax;
+    double yMin = params.yMin;
+    double yMax = params.yMax;
+
+
+    // Creating an array to store graph points
+    QVector<QPointF> points;
+
+    // Calculating and adding graph points to an array
+    qreal step = 0.1;
+    for (qreal x = xMin; x <= xMax; x += step) {
+        qreal y = 0;
+        if (currentGraph == linear) {
+            y = params.k * x + params.b; // y = kx + b
+        } else if (currentGraph == quadro) {
+            y = params.a * x * x + params.b * x + params.c; // y = ax^2 + bx + c
+        } else if (currentGraph == cubic) {
+            y = params.a * x * x * x + params.b * x * x + params.c * x + params.d; // y = ax^3 + bx^2 + cx + d
+        } else if (currentGraph == random) {
+            y = params.a * pow(x, params.b) + sin(params.c * x); // у = ax^b + sin(cx)
+        }
+
+        QPointF p = transform.map(QPointF(x, y));
+        points.append(p);
+    }
+
+    QPointF previousPoint;
+    for (const QPointF& point : points) {
+        QPointF scenePoint(point.x(), point.y());
+
+        if (!previousPoint.isNull()) {
+            QPen pen(color);
+            qDebug() << color.name();
+
+            QGraphicsLineItem* lineItem = graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
+            lines.append(lineItem);
+
+            //graphSurface->addLine(QLineF(previousPoint, scenePoint), pen);
+        }
+        previousPoint = scenePoint;
+    }
+
+}
+
+void Widget::redrawGraphs() {
+    // for (QGraphicsLineItem* line : lines) {
+    //     graphSurface->removeItem(line);
+    //     delete line;
+    // }
+    // lines.clear();
+
+    for (const GraphParams& params : graphs) {
+        drawSingleGraph(params);
+    }
+
+
 }
 
 
