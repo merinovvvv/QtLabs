@@ -8,6 +8,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QListWidget>
+#include <QCheckBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -27,6 +28,10 @@ private:
     Ui::MainWindow *ui;
     QColor penColor;
     QColor brushColor;
+
+    QCheckBox* pattern1;
+    QCheckBox* pattern2;
+    QCheckBox* pattern3;
 
     QListWidget *listWidget;
 
@@ -62,5 +67,6 @@ private slots:
     void saveInfo();
     void drawTriangle();
     void clearTriangles();
+    void check();
 };
 #endif // MAINWINDOW_H

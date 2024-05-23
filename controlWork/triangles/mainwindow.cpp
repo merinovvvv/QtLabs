@@ -26,6 +26,23 @@ MainWindow::MainWindow(QWidget *parent)
 
     listWidget = new QListWidget();
 
+    pattern1 = new QCheckBox();
+    pattern2 = new QCheckBox();
+    pattern3 = new QCheckBox();
+
+    // QLabel* pattern1Label = new QLabel();
+    // QLabel* pattern2Label = new QLabel();
+    // QLabel* pattern3Label = new QLabel();
+
+    pattern1->setText("CrossPattern");
+    pattern2->setText("Dense7Pattern");
+    pattern3->setText("HorPattern");
+
+    QHBoxLayout* patternsLayout = new QHBoxLayout();
+    patternsLayout->addWidget(pattern1);
+    patternsLayout->addWidget(pattern2);
+    patternsLayout->addWidget(pattern3);
+
     chooseBrushColorAction = new QAction("Brush color", this);
     choosePenColorAction = new QAction("Pen color", this);
     paramsMenu->addAction(choosePenColorAction);
@@ -44,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     canvas = new QGraphicsScene();
     canvasView = new QGraphicsView();
 
-    canvas->setSceneRect(0, 0, 800, 700);
+    canvas->setSceneRect(0, 0, 750, 650);
     canvasView->setScene(canvas);
 
     x1Line = new QLineEdit();
@@ -148,6 +165,7 @@ MainWindow::MainWindow(QWidget *parent)
     genLayout->addLayout(p3Layout);
     genLayout->addWidget(saveButton);
     genLayout->addWidget(listWidget);
+    genLayout->addLayout(patternsLayout);
     genLayout->addLayout(comboLayout);
     genLayout->addWidget(drawButton);
     genLayout->addLayout(typeLayout);
@@ -172,6 +190,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(saveButton, SIGNAL(clicked()), this, SLOT(saveInfo()));
     connect(drawButton, SIGNAL(clicked()), this, SLOT(drawTriangle()));
     connect(clearButton, SIGNAL(clicked()), this, SLOT(clearTriangles()));
+    connect(pattern1, SIGNAL(stateChanged(int)), this, SLOT(check()));
+    connect(pattern2, SIGNAL(stateChanged(int)), this, SLOT(check()));
+    connect(pattern3, SIGNAL(stateChanged(int)), this, SLOT(check()));
 
 }
 
@@ -194,9 +215,9 @@ void MainWindow::chooseColor() {
     QAction *action = qobject_cast<QAction *>(sender());
     if (action) {
         if (action == chooseBrushColorAction) {
-            penColor = color;
-        } else if (action == choosePenColorAction) {
             brushColor = color;
+        } else if (action == choosePenColorAction) {
+            penColor = color;
         }
     }
 }
@@ -238,8 +259,31 @@ void MainWindow::drawTriangle() {
     pen.setWidth(comboSize->currentText().toInt());
     triangleItem->setPen(pen);
 
-    QBrush brush(brushColor);
-    triangleItem->setBrush(brush);
+
+
+    // pattern1->setText("CrossPattern");
+    // pattern2->setText("Dense7Pattern");
+    // pattern3->setText("HorPattern");
+
+    if (pattern1->isChecked()) {
+        QBrush brush(Qt::CrossPattern);
+        brush.setColor(brushColor);
+        triangleItem->setBrush(brush);
+
+    } else if (pattern2->isChecked()) {
+        QBrush brush(Qt::Dense7Pattern);
+        brush.setColor(brushColor);
+        triangleItem->setBrush(brush);
+
+    } else if (pattern3->isChecked()) {
+        QBrush brush(Qt::HorPattern);
+        brush.setColor(brushColor);
+        triangleItem->setBrush(brush);
+
+    } else {
+        QBrush brush(brushColor);
+        triangleItem->setBrush(brush);
+    }
 
     canvas->addItem(triangleItem);
 
@@ -288,6 +332,41 @@ void MainWindow::clearTriangles() {
     y2Line->clear();
     y3Line->clear();
     typeLine->clear();
+    pattern1->setChecked(false);
+    pattern2->setChecked(false);
+    pattern3->setChecked(false);
+}
+
+void MainWindow::check() {
+    QCheckBox *checkBox = qobject_cast<QCheckBox *>(sender());
+
+    if (checkBox) {
+        if (checkBox == pattern1) {
+            if (pattern1->isChecked()) {
+                pattern2->setEnabled(false);
+                pattern3->setEnabled(false);
+            } else {
+                pattern2->setEnabled(true);
+                pattern3->setEnabled(true);
+            }
+        } else if (checkBox == pattern2) {
+            if (pattern2->isChecked()) {
+                pattern1->setEnabled(false);
+                pattern3->setEnabled(false);
+            } else {
+                pattern1->setEnabled(true);
+                pattern3->setEnabled(true);
+            }
+        } else if (checkBox == pattern3) {
+            if (pattern3->isChecked()) {
+                pattern2->setEnabled(false);
+                pattern1->setEnabled(false);
+            } else {
+                pattern2->setEnabled(true);
+                pattern1->setEnabled(true);
+            }
+        }
+    }
 }
 
 MainWindow::~MainWindow()
