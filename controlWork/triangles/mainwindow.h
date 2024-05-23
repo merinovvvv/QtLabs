@@ -40,6 +40,7 @@ private:
 
     QPushButton* drawButton;
     QPushButton* saveButton;
+    QPushButton* clearButton;
 
     QLineEdit* x1Line;
     QLineEdit* x2Line;
@@ -60,5 +61,6 @@ private slots:
     void chooseColor();
     void saveInfo();
     void drawTriangle();
+    void clearTriangles();
 };
 #endif // MAINWINDOW_H

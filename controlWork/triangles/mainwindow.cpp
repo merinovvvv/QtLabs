@@ -66,9 +66,9 @@ MainWindow::MainWindow(QWidget *parent)
     typeLayout->addWidget(typeLine);
 
     comboSize = new QComboBox();
-    comboSize->addItem("1px");
-    comboSize->addItem("3px");
-    comboSize->addItem("5px");
+    comboSize->addItem("1");
+    comboSize->addItem("3");
+    comboSize->addItem("5");
     //comboSize->addItem("20px");
     comboSize->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
@@ -77,6 +77,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     saveButton = new QPushButton();
     saveButton->setText("Save");
+
+    clearButton = new QPushButton();
+    clearButton->setText("Clear");
 
     QLabel* comboText = new QLabel();
     comboText->setText("Pen width:");
@@ -148,6 +151,7 @@ MainWindow::MainWindow(QWidget *parent)
     genLayout->addLayout(comboLayout);
     genLayout->addWidget(drawButton);
     genLayout->addLayout(typeLayout);
+    genLayout->addWidget(clearButton);
 
 
     QHBoxLayout* mainLayout = new QHBoxLayout();
@@ -167,6 +171,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(choosePenColorAction, &QAction::triggered, this, &MainWindow::chooseColor);
     connect(saveButton, SIGNAL(clicked()), this, SLOT(saveInfo()));
     connect(drawButton, SIGNAL(clicked()), this, SLOT(drawTriangle()));
+    connect(clearButton, SIGNAL(clicked()), this, SLOT(clearTriangles()));
 
 }
 
@@ -242,30 +247,47 @@ void MainWindow::drawTriangle() {
 }
 
 void MainWindow::checkTriangleType() {
-        double x1 = x1Line->text().toDouble();
-        double y1 = y1Line->text().toDouble();
-        double x2 = x2Line->text().toDouble();
-        double y2 = y2Line->text().toDouble();
-        double x3 = x3Line->text().toDouble();
-        double y3 = y3Line->text().toDouble();
+    double x1 = x1Line->text().toDouble();
+    double y1 = y1Line->text().toDouble();
+    double x2 = x2Line->text().toDouble();
+    double y2 = y2Line->text().toDouble();
+    double x3 = x3Line->text().toDouble();
+    double y3 = y3Line->text().toDouble();
 
-        double side1 = qSqrt(qPow(x2 - x1, 2) + qPow(y2 - y1, 2));
-        double side2 = qSqrt(qPow(x3 - x2, 2) + qPow(y3 - y2, 2));
-        double side3 = qSqrt(qPow(x1 - x3, 2) + qPow(y1 - y3, 2));
+    double side1 = qSqrt(qPow(x2 - x1, 2) + qPow(y2 - y1, 2));
+    double side2 = qSqrt(qPow(x3 - x2, 2) + qPow(y3 - y2, 2));
+    double side3 = qSqrt(qPow(x1 - x3, 2) + qPow(y1 - y3, 2));
 
-        double angle1 = qAcos((qPow(side2, 2) + qPow(side3, 2) - qPow(side1, 2)) / (2 * side2 * side3));
-        double angle2 = qAcos((qPow(side1, 2) + qPow(side3, 2) - qPow(side2, 2)) / (2 * side1 * side3));
-        double angle3 = qAcos((qPow(side1, 2) + qPow(side2, 2) - qPow(side3, 2)) / (2 * side1 * side2));
+    if (side1 + side2 <= side3 || side2 + side3 <= side1 || side1 + side3 <= side2) {
+        typeLine->setText("Not a triangle");
+        return;
+    }
 
-        if (qFuzzyCompare(angle1, M_PI / 2) || qFuzzyCompare(angle2, M_PI / 2) || qFuzzyCompare(angle3, M_PI / 2)) {
-            typeLine->setText("A right-angled triangle");
-        } else if (qFuzzyCompare(angle1, angle2) && qFuzzyCompare(angle2, angle3)) {
-            typeLine->setText("An equilateral triangle");
-        } else if (qFuzzyCompare(angle1, angle2) || qFuzzyCompare(angle2, angle3) || qFuzzyCompare(angle3, angle1)) {
-            typeLine->setText("Isosceles triangle");
-        } else {
-            typeLine->setText("An arbitrary triangle");
-        }
+    // double angle1 = qAcos((qPow(side2, 2) + qPow(side3, 2) - qPow(side1, 2)) / (2 * side2 * side3));
+    // double angle2 = qAcos((qPow(side1, 2) + qPow(side3, 2) - qPow(side2, 2)) / (2 * side1 * side3));
+    // double angle3 = qAcos((qPow(side1, 2) + qPow(side2, 2) - qPow(side3, 2)) / (2 * side1 * side2));
+
+    if (qFuzzyCompare(side1 * side1 + side2 * side2, side3 * side3) || qFuzzyCompare(side2 * side2 + side3 * side3, side1 * side1) || qFuzzyCompare(side1 * side1 + side3 * side3, side2 * side2)){
+        typeLine->setText("A right-angled triangle");
+    } else if (qFuzzyCompare(side1, side2) && qFuzzyCompare(side2, side3)) {
+        typeLine->setText("An equilateral triangle");
+    } else if (qFuzzyCompare(side1, side2) || qFuzzyCompare(side2, side3) || qFuzzyCompare(side3, side1)) {
+        typeLine->setText("An isosceles triangle");
+    } else {
+        typeLine->setText("An arbitrary triangle");
+    }
+}
+
+void MainWindow::clearTriangles() {
+    canvas->clear();
+    listWidget->clear();
+    x1Line->clear();
+    x2Line->clear();
+    x3Line->clear();
+    y1Line->clear();
+    y2Line->clear();
+    y3Line->clear();
+    typeLine->clear();
 }
 
 MainWindow::~MainWindow()
